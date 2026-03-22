@@ -36,3 +36,36 @@ export interface DoseLog {
   status: 'taken' | 'missed' | 'skipped';
   notes?: string;
 }
+
+export interface Condition {
+  id?: number;
+  profileId: number;
+  name: string;
+  description?: string;
+  startDate: string; // ISO date string
+  endDate?: string;
+  status: 'active' | 'recovered' | 'monitoring';
+  createdAt: number; // timestamp ms
+}
+
+export interface ConditionMedication {
+  id?: number;
+  conditionId: number;
+  medicationId: number;
+}
+
+export interface Symptom {
+  id?: number;
+  conditionId: number;
+  name: string; // e.g. "headache", "congestion"
+}
+
+export interface SymptomLog {
+  id?: number;
+  symptomId: number;
+  conditionId: number;
+  severity: number; // 1-10
+  notes?: string;
+  loggedAt: number; // timestamp ms
+  date: string; // ISO date string YYYY-MM-DD
+}

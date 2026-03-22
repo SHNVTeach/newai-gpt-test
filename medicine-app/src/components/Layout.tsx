@@ -1,18 +1,19 @@
-import { NavLink, Outlet } from 'react-router-dom';
-import { Home, Pill, Clock, Package, Users } from 'lucide-react';
+import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { Home, Pill, Clock, Users, Activity, Search } from 'lucide-react';
 import { useProfile } from '../context/ProfileContext';
 import { useProfiles } from '../hooks/useProfiles';
 
 export function Layout() {
   const { activeProfileId } = useProfile();
   const { profiles } = useProfiles();
+  const navigate = useNavigate();
   const active = profiles.find((p) => p.id === activeProfileId);
 
   const navItems = [
     { to: '/', icon: Home, label: 'Today' },
     { to: '/medications', icon: Pill, label: 'Meds' },
+    { to: '/conditions', icon: Activity, label: 'Conditions' },
     { to: '/history', icon: Clock, label: 'History' },
-    { to: '/inventory', icon: Package, label: 'Inventory' },
     { to: '/profiles', icon: Users, label: 'Profiles' },
   ];
 
@@ -21,17 +22,26 @@ export function Layout() {
       {/* Header */}
       <header className="bg-indigo-600 text-white px-4 py-3 flex items-center justify-between shadow">
         <h1 className="text-lg font-bold tracking-tight">MedTrack</h1>
-        {active && (
-          <NavLink to="/profiles" className="flex items-center gap-2">
-            <span
-              className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold"
-              style={{ backgroundColor: active.color }}
-            >
-              {active.avatar}
-            </span>
-            <span className="text-sm font-medium">{active.name}</span>
-          </NavLink>
-        )}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => navigate('/search')}
+            className="p-1.5 rounded-lg bg-indigo-500 hover:bg-indigo-400 transition-colors"
+            aria-label="Search"
+          >
+            <Search size={18} />
+          </button>
+          {active && (
+            <NavLink to="/profiles" className="flex items-center gap-2">
+              <span
+                className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold"
+                style={{ backgroundColor: active.color }}
+              >
+                {active.avatar}
+              </span>
+              <span className="text-sm font-medium">{active.name}</span>
+            </NavLink>
+          )}
+        </div>
       </header>
 
       {/* Page content */}
