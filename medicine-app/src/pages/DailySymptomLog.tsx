@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Check } from 'lucide-react';
+import { ArrowLeft, Check, Cloud } from 'lucide-react';
 import { useCondition, useConditionSymptoms } from '../hooks/useConditions';
 import { logSymptom } from '../hooks/useSymptomLogs';
+import { fetchAndSaveWeather } from '../hooks/useWeather';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db/database';
+import { useProfile } from '../context/ProfileContext';
+import type { WeatherLog } from '../types';
 
 const SEVERITY_LABELS: Record<number, string> = {
   1: 'Barely noticeable',
@@ -39,6 +42,7 @@ export function DailySymptomLog() {
   const { id } = useParams();
   const navigate = useNavigate();
   const conditionId = Number(id);
+  const { activeProfileId } = useProfile();
 
   const condition = useCondition(conditionId);
   const symptoms = useConditionSymptoms(conditionId);
@@ -54,6 +58,17 @@ export function DailySymptomLog() {
   const [severities, setSeverities] = useState<Record<number, number>>({});
   const [notes, setNotes] = useState<Record<number, string>>({});
   const [saved, setSaved] = useState(false);
+  const [weather, setWeather] = useState<WeatherLog | null>(null);
+  const [fetchingWeather, setFetchingWeather] = useState(false);
+
+  // Auto-fetch weather on mount
+  useEffect(() => {
+    if (!activeProfileId) return;
+    setFetchingWeather(true);
+    fetchAndSaveWeather(activeProfileId, today)
+      .then(w => setWeather(w))
+      .finally(() => setFetchingWeather(false));
+  }, [activeProfileId, today]);
 
   useEffect(() => {
     if (existingLogs.length > 0) {
@@ -141,6 +156,23 @@ export function DailySymptomLog() {
       </div>
 
       <p className="text-sm text-gray-500">Rate each symptom from 1 (barely noticeable) to 10 (worst possible).</p>
+
+      {/* Weather context */}
+      {(weather || fetchingWeather) && (
+        <div className="bg-sky-50 border border-sky-100 rounded-xl px-4 py-3 flex items-center gap-3">
+          <Cloud size={18} className="text-sky-400 shrink-0" />
+          {fetchingWeather ? (
+            <span className="text-xs text-sky-500">Fetching local weather...</span>
+          ) : weather ? (
+            <div className="text-xs text-sky-700">
+              <span className="font-semibold">{weather.description}</span>
+              {weather.tempC != null && <span className="ml-2">{weather.tempC.toFixed(1)}°C</span>}
+              {weather.humidity != null && <span className="ml-2">💧{weather.humidity}%</span>}
+              {weather.city && <span className="ml-2 text-sky-400">· {weather.city}</span>}
+            </div>
+          ) : null}
+        </div>
+      )}
 
       <div className="space-y-4">
         {symptoms.map(symptom => {

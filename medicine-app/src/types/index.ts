@@ -69,3 +69,62 @@ export interface SymptomLog {
   loggedAt: number; // timestamp ms
   date: string; // ISO date string YYYY-MM-DD
 }
+
+export interface VitalLog {
+  id?: number;
+  profileId: number;
+  date: string; // YYYY-MM-DD
+  loggedAt: number;
+  temperature?: number;       // °C or °F depending on user pref
+  temperatureUnit?: 'C' | 'F';
+  bloodPressureSystolic?: number;
+  bloodPressureDiastolic?: number;
+  heartRate?: number;         // bpm
+  sleepHours?: number;        // hours
+  weight?: number;            // kg or lbs
+  weightUnit?: 'kg' | 'lbs';
+  oxygenSaturation?: number;  // %
+  notes?: string;
+}
+
+export interface SideEffect {
+  id?: number;
+  profileId: number;
+  medicationId: number;
+  name: string;               // e.g. "Nausea", "Dizziness"
+  severity: number;           // 1-10
+  date: string;               // YYYY-MM-DD
+  loggedAt: number;
+  notes?: string;
+}
+
+export interface Trigger {
+  id?: number;
+  profileId: number;
+  name: string;               // e.g. "Stress", "Caffeine", "Poor sleep"
+  category: 'food' | 'lifestyle' | 'environment' | 'stress' | 'other';
+}
+
+export interface TriggerLog {
+  id?: number;
+  triggerId: number;
+  profileId: number;
+  conditionId?: number;
+  date: string;               // YYYY-MM-DD
+  loggedAt: number;
+  intensity: number;          // 1-10
+  notes?: string;
+}
+
+export interface WeatherLog {
+  id?: number;
+  date: string;               // YYYY-MM-DD
+  profileId: number;
+  tempC?: number;
+  humidity?: number;          // %
+  description?: string;       // e.g. "Partly cloudy"
+  windSpeed?: number;         // km/h
+  pressure?: number;          // hPa
+  city?: string;
+  fetchedAt: number;
+}
