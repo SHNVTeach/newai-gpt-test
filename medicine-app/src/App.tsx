@@ -12,6 +12,11 @@ import { ConditionDetail } from './pages/ConditionDetail';
 import { DailySymptomLog } from './pages/DailySymptomLog';
 import { Search } from './pages/Search';
 import { AIInsights } from './pages/AIInsights';
+import { Vitals } from './pages/Vitals';
+import { VitalLogForm } from './pages/VitalLogForm';
+import { SideEffects } from './pages/SideEffects';
+import { Triggers } from './pages/Triggers';
+import { DoctorReport } from './pages/DoctorReport';
 import { NotFound } from './pages/NotFound';
 import { ProfileProvider } from './context/ProfileContext';
 
@@ -35,6 +40,11 @@ export default function App() {
             <Route path="conditions/:id/log" element={<DailySymptomLog />} />
             <Route path="search" element={<Search />} />
             <Route path="ai-insights" element={<AIInsights />} />
+            <Route path="vitals" element={<Vitals />} />
+            <Route path="vitals/log" element={<VitalLogForm />} />
+            <Route path="side-effects" element={<SideEffects />} />
+            <Route path="triggers" element={<Triggers />} />
+            <Route path="doctor-report" element={<DoctorReport />} />
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>
