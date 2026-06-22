@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HK Live Bus Tracker</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      display: flex;
+      height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      overflow: hidden;
+      background: #1a1a2e;
+    }
+
+    /* ---- Sidebar ---- */
+    #sidebar {
+      width: 300px;
+      min-width: 300px;
+      background: #1a1a2e;
+      color: #e8e8f0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border-right: 1px solid #0f3460;
+    }
+
+    .header {
+      padding: 14px 16px;
+      background: #16213e;
+      border-bottom: 1px solid #0f3460;
+      flex-shrink: 0;
+    }
+
+    .header h1 {
+      font-size: 17px;
+      font-weight: 700;
+      color: #e94560;
+      letter-spacing: 0.2px;
+    }
+
+    .header .subtitle {
+      font-size: 11px;
+      color: #6670a0;
+      margin-top: 3px;
+    }
+
+    .search-section {
+      padding: 10px 12px;
+      background: #16213e;
+      border-bottom: 1px solid #0f3460;
+      flex-shrink: 0;
+    }
+
+    #routeSearch {
+      width: 100%;
+      padding: 8px 12px;
+      background: #0d1b35;
+      border: 1px solid #1a4a8a;
+      border-radius: 6px;
+      color: #e8e8f0;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    #routeSearch::placeholder { color: #4a5580; }
+    #routeSearch:focus { border-color: #e94560; }
+
+    #routeList {
+      overflow-y: auto;
+      max-height: 240px;
+      flex-shrink: 0;
+    }
+
+    .route-item {
+      display: flex;
+      align-items: center;
+      padding: 7px 12px;
+      cursor: pointer;
+      gap: 7px;
+      transition: background 0.12s;
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+    }
+    .route-item:hover { background: #0f2044; }
+    .route-item.active { background: #e94560; }
+
+    .route-num {
+      font-weight: 700;
+      font-size: 13px;
+      min-width: 40px;
+      color: #e94560;
+      font-family: 'SF Mono', 'Consolas', monospace;
+    }
+    .route-item.active .route-num { color: #fff; }
+
+    .route-arrow {
+      color: #3a4570;
+      font-size: 10px;
+      flex-shrink: 0;
+    }
+    .route-item.active .route-arrow { color: rgba(255,255,255,0.7); }
+
+    .route-label {
+      font-size: 11px;
+      color: #8890b0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .route-item.active .route-label { color: #fff; }
+
+    .list-empty {
+      padding: 14px;
+      color: #4a5580;
+      font-size: 12px;
+      text-align: center;
+    }
+
+    /* ---- Route Info ---- */
+    #routeInfo {
+      padding: 10px 12px;
+      border-top: 1px solid #0f3460;
+      border-bottom: 1px solid #0f3460;
+      flex-shrink: 0;
+    }
+    #routeInfo.hidden { display: none; }
+
+    .info-route-id {
+      font-size: 20px;
+      font-weight: 800;
+      color: #e94560;
+      font-family: 'SF Mono', monospace;
+    }
+
+    .info-route-name {
+      font-size: 11px;
+      color: #8890b0;
+      margin-top: 2px;
+      line-height: 1.4;
+    }
+
+    .dir-toggle {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .dir-btn {
+      flex: 1;
+      padding: 5px 4px;
+      border: 1px solid #1a4a8a;
+      border-radius: 4px;
+      background: transparent;
+      color: #6670a0;
+      font-size: 10px;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-align: center;
+      line-height: 1.3;
+    }
+    .dir-btn.active {
+      background: #e94560;
+      border-color: #e94560;
+      color: #fff;
+      font-weight: 600;
+    }
+    .dir-btn:hover:not(.active) {
+      border-color: #e94560;
+      color: #e94560;
+    }
+
+    /* ---- Status ---- */
+    #status {
+      padding: 8px 12px;
+      font-size: 11px;
+      color: #6670a0;
+      border-bottom: 1px solid #0f3460;
+      flex-shrink: 0;
+      min-height: 32px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    #status.error { color: #e94560; }
+    #status.loading { color: #f39c12; }
+    #status.ok { color: #2ecc71; }
+
+    .spinner {
+      width: 10px;
+      height: 10px;
+      border: 2px solid rgba(243,156,18,0.3);
+      border-top-color: #f39c12;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ---- Legend ---- */
+    .legend {
+      padding: 10px 12px;
+      border-bottom: 1px solid #0f3460;
+      flex-shrink: 0;
+    }
+
+    .legend-title {
+      font-size: 10px;
+      font-weight: 600;
+      color: #3a4570;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 7px;
+    }
+
+    .legend-row {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin-bottom: 5px;
+      font-size: 11px;
+      color: #8890b0;
+    }
+
+    .legend-bus {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+      border: 2px solid rgba(255,255,255,0.3);
+    }
+
+    .legend-line {
+      width: 26px;
+      height: 3px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    .legend-stop {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #fff;
+      border: 2px solid #e94560;
+      flex-shrink: 0;
+    }
+
+    /* ---- Attribution ---- */
+    .attribution {
+      padding: 8px 12px;
+      font-size: 10px;
+      color: #2a3050;
+      margin-top: auto;
+    }
+
+    /* ---- Map ---- */
+    #map {
+      flex: 1;
+      z-index: 1;
+    }
+
+    /* ---- Bus markers ---- */
+    .bus-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+      border: 2px solid rgba(255,255,255,0.85);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.45);
+      cursor: pointer;
+      animation: bus-pulse 2.5s ease-in-out infinite;
+    }
+
+    @keyframes bus-pulse {
+      0%   { box-shadow: 0 2px 10px rgba(0,0,0,0.45), 0 0 0 0 rgba(255,255,255,0.55); }
+      60%  { box-shadow: 0 2px 10px rgba(0,0,0,0.45), 0 0 0 9px rgba(255,255,255,0); }
+      100% { box-shadow: 0 2px 10px rgba(0,0,0,0.45), 0 0 0 0 rgba(255,255,255,0); }
+    }
+
+    /* ---- Popup ---- */
+    .leaflet-popup-content-wrapper {
+      border-radius: 8px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    }
+    .leaflet-popup-content {
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .popup-title {
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+    .popup-eta {
+      color: #666;
+      font-size: 12px;
+    }
+    .popup-eta-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .eta-mins {
+      font-weight: 600;
+      color: #e94560;
+    }
+
+    /* ---- Mobile ---- */
+    @media (max-width: 640px) {
+      body { flex-direction: column; }
+      #sidebar {
+        width: 100%;
+        min-width: unset;
+        height: 260px;
+        min-height: 260px;
+        border-right: none;
+        border-bottom: 1px solid #0f3460;
+      }
+      #routeList { max-height: 120px; }
+      #map { flex: 1; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="sidebar">
+  <div class="header">
+    <h1>&#x1F68C; HK Live Bus Tracker</h1>
+    <p class="subtitle">Estimated positions via KMB Open Data</p>
+  </div>
+
+  <div class="search-section">
+    <input type="text" id="routeSearch"
+           placeholder="Search route (e.g. 1, 68X, 260X)&#x2026;"
+           autocomplete="off" spellcheck="false" />
+  </div>
+
+  <div id="routeList">
+    <div class="list-empty">Type a route number to search</div>
+  </div>
+
+  <div id="routeInfo" class="hidden">
+    <div style="display:flex;align-items:baseline;gap:8px">
+      <span class="info-route-id" id="infoRouteId"></span>
+      <span class="info-route-name" id="infoRouteName"></span>
+    </div>
+    <div class="dir-toggle" id="dirToggle"></div>
+  </div>
+
+  <div id="status">Loading routes&#x2026;</div>
+
+  <div class="legend">
+    <div class="legend-title">Legend</div>
+    <div class="legend-row">
+      <div class="legend-bus" style="background:#2ecc71">1</div>
+      Next bus
+    </div>
+    <div class="legend-row">
+      <div class="legend-bus" style="background:#3498db">2</div>
+      2nd bus
+    </div>
+    <div class="legend-row">
+      <div class="legend-bus" style="background:#9b59b6">3</div>
+      3rd bus
+    </div>
+    <div class="legend-row">
+      <div class="legend-line" style="background:#e94560"></div>
+      Route path
+    </div>
+    <div class="legend-row">
+      <div class="legend-stop"></div>
+      Bus stop (click for ETAs)
+    </div>
+  </div>
+
+  <div class="attribution">Data: KMB Open Data API &middot; Map: &copy; OpenStreetMap contributors</div>
+</div>
+
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+'use strict';
+
+const KMB = 'https://data.etabus.gov.hk/v1/transport/kmb';
+const BUS_COLORS = ['#2ecc71', '#3498db', '#9b59b6'];
+
+// Application state
+const state = {
+  allRoutes: [],
+  selected: null,       // {route, bound, service_type, orig_en, dest_en}
+  routeStops: [],       // [{seq, stop_id, lat, lng, name_en}]
+  refreshTimer: null,
+  cdownTimer: null,
+};
+
+let lastEtas = {};      // seq -> {etaSeq -> ms timestamp}
+
+// Leaflet layers
+let map;
+const layer = { route: null, stops: null, buses: null };
+
+// ----------------------------------------------------------------
+// Initialisation
+// ----------------------------------------------------------------
+(async function init() {
+  initMap();
+  document.getElementById('routeSearch')
+    .addEventListener('input', e => renderRouteList(e.target.value));
+  await loadRoutes();
+})();
+
+function initMap() {
+  map = L.map('map', { zoomControl: true }).setView([22.355, 114.148], 12);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    maxZoom: 19,
+  }).addTo(map);
+  layer.route = L.layerGroup().addTo(map);
+  layer.stops = L.layerGroup().addTo(map);
+  layer.buses = L.layerGroup().addTo(map);
+}
+
+// ----------------------------------------------------------------
+// Load all KMB routes
+// ----------------------------------------------------------------
+async function loadRoutes() {
+  setStatus('Loading routes…', 'loading');
+  try {
+    const res = await fetch(`${KMB}/route/`);
+    const json = await res.json();
+    state.allRoutes = json.data || [];
+    setStatus('Search for a KMB route to begin');
+  } catch {
+    setStatus('Could not load routes — check network connection', 'error');
+  }
+}
+
+// ----------------------------------------------------------------
+// Route list rendering & filtering
+// ----------------------------------------------------------------
+function renderRouteList(query) {
+  const list = document.getElementById('routeList');
+  if (!query.trim()) {
+    list.innerHTML = '<div class="list-empty">Type a route number to search</div>';
+    return;
+  }
+  const q = query.trim().toUpperCase();
+  const hits = state.allRoutes
+    .filter(r => r.route === q || r.route.startsWith(q))
+    .slice(0, 40);
+
+  if (!hits.length) {
+    list.innerHTML = `<div class="list-empty">No routes matching “${query}”</div>`;
+    return;
+  }
+
+  list.innerHTML = hits.map(r => {
+    const sel = state.selected;
+    const active = sel && sel.route === r.route && sel.bound === r.bound && sel.service_type === r.service_type;
+    return `<div class="route-item${active ? ' active' : ''}"
+         onclick="pickRoute('${esc(r.route)}','${r.bound}','${esc(r.service_type)}')">
+      <span class="route-num">${esc(r.route)}</span>
+      <span class="route-arrow">${r.bound === 'O' ? '&#9654;' : '&#9664;'}</span>
+      <span class="route-label">${titleCase(r.orig_en)} &#x2192; ${titleCase(r.dest_en)}</span>
+    </div>`;
+  }).join('');
+}
+
+// ----------------------------------------------------------------
+// Route selection
+// ----------------------------------------------------------------
+window.pickRoute = async function(routeId, bound, serviceType) {
+  const route = state.allRoutes.find(
+    r => r.route === routeId && r.bound === bound && r.service_type === serviceType
+  );
+  if (!route) return;
+
+  const sel = state.selected;
+  if (sel && sel.route === routeId && sel.bound === bound && sel.service_type === serviceType) return;
+
+  state.selected = route;
+  stopRefresh();
+  clearLayers();
+
+  // Re-render list to show active highlight
+  renderRouteList(document.getElementById('routeSearch').value);
+  showRouteInfo(route);
+
+  try {
+    await loadRouteStops(routeId, bound, serviceType);
+    startRefresh();
+  } catch {
+    // error already shown via setStatus
+  }
+};
+
+function showRouteInfo(route) {
+  document.getElementById('infoRouteId').textContent = route.route;
+  document.getElementById('infoRouteName').textContent =
+    `${titleCase(route.orig_en)} → ${titleCase(route.dest_en)}`;
+
+  const opposite = state.allRoutes.find(
+    r => r.route === route.route && r.bound !== route.bound && r.service_type === route.service_type
+  );
+
+  const toggle = document.getElementById('dirToggle');
+  toggle.innerHTML = '';
+  if (opposite) {
+    const ob = route.bound === 'O' ? route : opposite;
+    const ib = route.bound === 'I' ? route : opposite;
+    toggle.innerHTML = `
+      <button class="dir-btn${route.bound === 'O' ? ' active' : ''}"
+              onclick="pickRoute('${esc(ob.route)}','O','${esc(ob.service_type)}')"
+              title="${esc(ob.orig_en)} to ${esc(ob.dest_en)}">
+        &#9654; ${titleCase(ob.dest_en)}
+      </button>
+      <button class="dir-btn${route.bound === 'I' ? ' active' : ''}"
+              onclick="pickRoute('${esc(ib.route)}','I','${esc(ib.service_type)}')"
+              title="${esc(ib.orig_en)} to ${esc(ib.dest_en)}">
+        &#9664; ${titleCase(ib.dest_en)}
+      </button>`;
+  }
+
+  document.getElementById('routeInfo').classList.remove('hidden');
+}
+
+// ----------------------------------------------------------------
+// Load route stops
+// ----------------------------------------------------------------
+async function loadRouteStops(routeId, bound, serviceType) {
+  setStatus('Loading stops…', 'loading');
+
+  const res = await fetch(`${KMB}/route-stop/${routeId}/${bound}/${serviceType}`);
+  if (!res.ok) {
+    setStatus('Failed to load stops for this route', 'error');
+    throw new Error('route-stop fetch failed');
+  }
+  const json = await res.json();
+  const refs = (json.data || []).sort((a, b) => +a.seq - +b.seq);
+
+  if (!refs.length) {
+    setStatus('No stops found for this route', 'error');
+    throw new Error('no stops');
+  }
+
+  setStatus(`Fetching ${refs.length} stop coordinates…`, 'loading');
+  const coords = await batchFetchStops(refs.map(r => r.stop));
+
+  state.routeStops = refs
+    .map(r => ({ seq: +r.seq, stop_id: r.stop, ...coords[r.stop] }))
+    .filter(s => s.lat != null && s.lng != null);
+
+  if (!state.routeStops.length) {
+    setStatus('Could not retrieve stop coordinates', 'error');
+    throw new Error('no coords');
+  }
+
+  drawRoute(state.routeStops);
+  setStatus(`${state.routeStops.length} stops loaded`);
+}
+
+async function batchFetchStops(stopIds) {
+  const result = {};
+  const toFetch = [];
+
+  for (const id of stopIds) {
+    const cached = sessionStorage.getItem(`kmb_s_${id}`);
+    if (cached) {
+      result[id] = JSON.parse(cached);
+    } else {
+      toFetch.push(id);
+    }
+  }
+
+  for (let i = 0; i < toFetch.length; i += 8) {
+    await Promise.all(
+      toFetch.slice(i, i + 8).map(async id => {
+        try {
+          const r = await fetch(`${KMB}/stop/${id}`);
+          const j = await r.json();
+          if (j.data) {
+            const info = {
+              lat: parseFloat(j.data.lat),
+              lng: parseFloat(j.data.long),
+              name_en: j.data.name_en,
+            };
+            result[id] = info;
+            sessionStorage.setItem(`kmb_s_${id}`, JSON.stringify(info));
+          }
+        } catch { /* skip bad stop */ }
+      })
+    );
+  }
+
+  return result;
+}
+
+// ----------------------------------------------------------------
+// Map drawing
+// ----------------------------------------------------------------
+function drawRoute(stops) {
+  clearLayers();
+  const lls = stops.map(s => [s.lat, s.lng]);
+
+  L.polyline(lls, { color: '#e94560', weight: 4, opacity: 0.7 })
+    .addTo(layer.route);
+
+  stops.forEach(stop => {
+    L.circleMarker([stop.lat, stop.lng], {
+      radius: 5,
+      fillColor: '#fff',
+      color: '#e94560',
+      weight: 2,
+      fillOpacity: 1,
+      zIndexOffset: 50,
+    })
+    .bindPopup(() => buildStopPopup(stop), { maxWidth: 240 })
+    .addTo(layer.stops);
+  });
+
+  if (lls.length > 1) {
+    map.fitBounds(L.latLngBounds(lls), { padding: [40, 40] });
+  }
+}
+
+function buildStopPopup(stop) {
+  const now = Date.now();
+  const etas = lastEtas[stop.seq];
+  let etaHtml = '<div class="popup-eta" style="color:#999;margin-top:4px">No buses en route</div>';
+
+  if (etas) {
+    const rows = [1, 2, 3]
+      .map(es => {
+        const t = etas[es];
+        if (!t) return null;
+        const mins = Math.round((t - now) / 60000);
+        if (mins < -1) return null;
+        const label = mins <= 0 ? 'Arriving' : `${mins} min`;
+        return `<div class="popup-eta-row">
+          <span>Bus&nbsp;${es}</span>
+          <span class="eta-mins">${label}</span>
+        </div>`;
+      })
+      .filter(Boolean);
+
+    if (rows.length) {
+      etaHtml = `<div class="popup-eta" style="margin-top:6px">${rows.join('')}</div>`;
+    }
+  }
+
+  return `<div class="popup-title">${esc(stop.name_en)}</div>
+          <div style="font-size:11px;color:#999">Stop ${stop.seq}</div>
+          ${etaHtml}`;
+}
+
+// ----------------------------------------------------------------
+// ETA fetch & bus position interpolation
+// ----------------------------------------------------------------
+async function updateBusPositions() {
+  if (!state.selected) return;
+  const { route, bound, service_type } = state.selected;
+
+  setStatus('Refreshing…', 'loading');
+
+  try {
+    const res = await fetch(`${KMB}/route-eta/${route}/${service_type}`);
+    if (!res.ok) throw new Error('eta fetch failed');
+    const json = await res.json();
+
+    const now = Date.now();
+    lastEtas = {};
+
+    for (const item of json.data || []) {
+      if (item.dir !== bound) continue;
+      const seq = +item.seq;
+      const es  = +item.eta_seq;
+      if (!lastEtas[seq]) lastEtas[seq] = {};
+      lastEtas[seq][es] = item.eta ? new Date(item.eta).getTime() : null;
+    }
+
+    layer.buses.clearLayers();
+    let found = 0;
+
+    for (let es = 1; es <= 3; es++) {
+      const pos = interpolateBus(state.routeStops, lastEtas, es, now);
+      if (pos) {
+        addBusMarker(pos, es, now);
+        found++;
+      }
+    }
+
+    if (found === 0) {
+      setStatus('No buses currently operating on this route', 'error');
+    } else {
+      setStatus(`${found} bus${found > 1 ? 'es' : ''} tracked · Refreshing in 30s`, 'ok');
+      startCountdown();
+    }
+  } catch {
+    setStatus('Failed to fetch ETA data', 'error');
+  }
+}
+
+function interpolateBus(stops, etaBySeq, etaSeq, now) {
+  // Find the first stop this bus still has a future ETA for
+  let firstIdx = -1;
+  for (let i = 0; i < stops.length; i++) {
+    const t = etaBySeq[stops[i].seq]?.[etaSeq];
+    if (t != null && t > now) {
+      firstIdx = i;
+      break;
+    }
+  }
+  if (firstIdx < 0) return null;
+
+  const nextStop = stops[firstIdx];
+  const etaNext  = etaBySeq[nextStop.seq][etaSeq];
+
+  // Bus hasn't entered the route yet
+  if (firstIdx === 0) {
+    return { lat: nextStop.lat, lng: nextStop.lng, etaNext, nextStop };
+  }
+
+  const prevStop = stops[firstIdx - 1];
+
+  // Estimate interval between stops using the gap between the next two future ETAs
+  let interval = 3 * 60 * 1000; // default 3 min
+  if (firstIdx + 1 < stops.length) {
+    const etaAfter = etaBySeq[stops[firstIdx + 1].seq]?.[etaSeq];
+    if (etaAfter && etaAfter > etaNext) interval = etaAfter - etaNext;
+  }
+
+  const estDeparture = etaNext - interval;
+  const t = Math.max(0, Math.min(1, (now - estDeparture) / (etaNext - estDeparture)));
+
+  return {
+    lat: prevStop.lat + t * (nextStop.lat - prevStop.lat),
+    lng: prevStop.lng + t * (nextStop.lng - prevStop.lng),
+    etaNext,
+    nextStop,
+  };
+}
+
+function addBusMarker({ lat, lng, etaNext, nextStop }, etaSeq, now) {
+  const color = BUS_COLORS[etaSeq - 1];
+  const mins  = etaNext ? Math.max(0, Math.round((etaNext - now) / 60000)) : '?';
+
+  const icon = L.divIcon({
+    html: `<div class="bus-icon" style="background:${color}">${etaSeq}</div>`,
+    className: '',
+    iconSize: [28, 28],
+    iconAnchor: [14, 14],
+    popupAnchor: [0, -16],
+  });
+
+  L.marker([lat, lng], { icon, zIndexOffset: 500 + etaSeq })
+    .bindPopup(
+      `<div class="popup-title">Bus ${etaSeq} (${etaSeq === 1 ? 'next' : etaSeq === 2 ? '2nd' : '3rd'})</div>` +
+      `<div class="popup-eta">
+        <div class="popup-eta-row">
+          <span>Next stop</span>
+          <span>${esc(nextStop?.name_en || '—')}</span>
+        </div>
+        <div class="popup-eta-row">
+          <span>Arriving in</span>
+          <span class="eta-mins">${mins} min</span>
+        </div>
+      </div>`,
+      { maxWidth: 220 }
+    )
+    .addTo(layer.buses);
+}
+
+// ----------------------------------------------------------------
+// Auto-refresh
+// ----------------------------------------------------------------
+function startRefresh() {
+  updateBusPositions();
+  state.refreshTimer = setInterval(updateBusPositions, 30_000);
+}
+
+function stopRefresh() {
+  clearInterval(state.refreshTimer);
+  clearInterval(state.cdownTimer);
+  state.refreshTimer = null;
+  state.cdownTimer   = null;
+}
+
+function startCountdown() {
+  clearInterval(state.cdownTimer);
+  let secs = 29;
+  state.cdownTimer = setInterval(() => {
+    secs--;
+    if (secs <= 0) { clearInterval(state.cdownTimer); return; }
+    const el = document.getElementById('status');
+    if (el.classList.contains('ok')) {
+      el.textContent = el.textContent.replace(/\d+s/, `${secs}s`);
+    }
+  }, 1000);
+}
+
+// ----------------------------------------------------------------
+// Status bar
+// ----------------------------------------------------------------
+function setStatus(msg, type) {
+  const el  = document.getElementById('status');
+  el.className = type ? `status ${type}` : 'status';
+  // Spinner for loading
+  const spinner = type === 'loading' ? '<div class="spinner"></div>' : '';
+  el.innerHTML  = spinner + esc(msg);
+}
+
+// ----------------------------------------------------------------
+// Helpers
+// ----------------------------------------------------------------
+function clearLayers() {
+  layer.route.clearLayers();
+  layer.stops.clearLayers();
+  layer.buses.clearLayers();
+  lastEtas = {};
+}
+
+function esc(s) {
+  if (!s) return '';
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function titleCase(str) {
+  if (!str) return '';
+  return str.replace(/\w+/g, w => w[0].toUpperCase() + w.slice(1).toLowerCase());
+}
+</script>
+</body>
+</html>
