@@ -10,16 +10,56 @@
 
     body {
       display: flex;
+      flex-direction: column;
       height: 100vh;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       overflow: hidden;
       background: #1a1a2e;
     }
 
+    /* ---- Warning banner ---- */
+    #fileBanner {
+      background: #d35400;
+      color: #fff;
+      padding: 8px 44px 8px 14px;
+      font-size: 12px;
+      line-height: 1.6;
+      position: relative;
+      flex-shrink: 0;
+    }
+    #fileBanner code {
+      background: rgba(0,0,0,0.25);
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-family: monospace;
+      font-size: 11px;
+    }
+    #fileBanner button {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 18px;
+      cursor: pointer;
+      line-height: 1;
+      opacity: 0.8;
+    }
+    #fileBanner button:hover { opacity: 1; }
+
+    /* ---- App layout ---- */
+    #app {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
     /* ---- Sidebar ---- */
     #sidebar {
-      width: 300px;
-      min-width: 300px;
+      width: 305px;
+      min-width: 305px;
       background: #1a1a2e;
       color: #e8e8f0;
       display: flex;
@@ -29,24 +69,13 @@
     }
 
     .header {
-      padding: 14px 16px;
+      padding: 13px 16px;
       background: #16213e;
       border-bottom: 1px solid #0f3460;
       flex-shrink: 0;
     }
-
-    .header h1 {
-      font-size: 17px;
-      font-weight: 700;
-      color: #e94560;
-      letter-spacing: 0.2px;
-    }
-
-    .header .subtitle {
-      font-size: 11px;
-      color: #6670a0;
-      margin-top: 3px;
-    }
+    .header h1 { font-size: 16px; font-weight: 700; color: #e94560; }
+    .header .subtitle { font-size: 11px; color: #6670a0; margin-top: 3px; }
 
     .search-section {
       padding: 10px 12px;
@@ -54,7 +83,6 @@
       border-bottom: 1px solid #0f3460;
       flex-shrink: 0;
     }
-
     #routeSearch {
       width: 100%;
       padding: 8px 12px;
@@ -71,7 +99,7 @@
 
     #routeList {
       overflow-y: auto;
-      max-height: 240px;
+      max-height: 235px;
       flex-shrink: 0;
     }
 
@@ -80,29 +108,32 @@
       align-items: center;
       padding: 7px 12px;
       cursor: pointer;
-      gap: 7px;
+      gap: 6px;
       transition: background 0.12s;
       border-bottom: 1px solid rgba(255,255,255,0.03);
     }
     .route-item:hover { background: #0f2044; }
-    .route-item.active { background: #e94560; }
+    .route-item.active { background: #1d3a6e; }
+
+    .co-badge {
+      font-size: 9px;
+      font-weight: 700;
+      padding: 2px 5px;
+      border-radius: 3px;
+      flex-shrink: 0;
+      letter-spacing: 0.4px;
+    }
+    .KMB { background: #e94560; color: #fff; }
+    .CTB { background: #27ae60; color: #fff; }
 
     .route-num {
       font-weight: 700;
       font-size: 13px;
-      min-width: 40px;
-      color: #e94560;
+      min-width: 38px;
+      color: #e8e8f0;
       font-family: 'SF Mono', 'Consolas', monospace;
     }
-    .route-item.active .route-num { color: #fff; }
-
-    .route-arrow {
-      color: #3a4570;
-      font-size: 10px;
-      flex-shrink: 0;
-    }
-    .route-item.active .route-arrow { color: rgba(255,255,255,0.7); }
-
+    .route-arrow { color: #3a4570; font-size: 10px; flex-shrink: 0; }
     .route-label {
       font-size: 11px;
       color: #8890b0;
@@ -110,16 +141,11 @@
       text-overflow: ellipsis;
       white-space: nowrap;
     }
-    .route-item.active .route-label { color: #fff; }
+    .route-item.active .route-label { color: #c8d0e8; }
 
-    .list-empty {
-      padding: 14px;
-      color: #4a5580;
-      font-size: 12px;
-      text-align: center;
-    }
+    .list-empty { padding: 14px; color: #4a5580; font-size: 12px; text-align: center; }
 
-    /* ---- Route Info ---- */
+    /* ---- Route info panel ---- */
     #routeInfo {
       padding: 10px 12px;
       border-top: 1px solid #0f3460;
@@ -128,26 +154,18 @@
     }
     #routeInfo.hidden { display: none; }
 
+    .info-top { display: flex; align-items: baseline; gap: 8px; margin-bottom: 1px; }
     .info-route-id {
-      font-size: 20px;
+      font-size: 22px;
       font-weight: 800;
-      color: #e94560;
       font-family: 'SF Mono', monospace;
     }
+    .info-route-id.KMB { color: #e94560; }
+    .info-route-id.CTB { color: #27ae60; }
+    .info-route-name { font-size: 11px; color: #8890b0; line-height: 1.4; }
+    .info-company { font-size: 10px; color: #5a6280; margin-bottom: 6px; }
 
-    .info-route-name {
-      font-size: 11px;
-      color: #8890b0;
-      margin-top: 2px;
-      line-height: 1.4;
-    }
-
-    .dir-toggle {
-      display: flex;
-      gap: 6px;
-      margin-top: 8px;
-    }
-
+    .dir-toggle { display: flex; gap: 6px; }
     .dir-btn {
       flex: 1;
       padding: 5px 4px;
@@ -161,16 +179,9 @@
       text-align: center;
       line-height: 1.3;
     }
-    .dir-btn.active {
-      background: #e94560;
-      border-color: #e94560;
-      color: #fff;
-      font-weight: 600;
-    }
-    .dir-btn:hover:not(.active) {
-      border-color: #e94560;
-      color: #e94560;
-    }
+    .dir-btn.active-KMB { background: #e94560; border-color: #e94560; color: #fff; font-weight: 600; }
+    .dir-btn.active-CTB { background: #27ae60; border-color: #27ae60; color: #fff; font-weight: 600; }
+    .dir-btn:hover:not([class*='active']) { border-color: #e94560; color: #e94560; }
 
     /* ---- Status ---- */
     #status {
@@ -184,14 +195,13 @@
       align-items: center;
       gap: 6px;
     }
-    #status.error { color: #e94560; }
+    #status.error  { color: #e74c3c; }
     #status.loading { color: #f39c12; }
-    #status.ok { color: #2ecc71; }
+    #status.ok     { color: #2ecc71; }
 
     .spinner {
-      width: 10px;
-      height: 10px;
-      border: 2px solid rgba(243,156,18,0.3);
+      width: 10px; height: 10px;
+      border: 2px solid rgba(243,156,18,0.25);
       border-top-color: #f39c12;
       border-radius: 50%;
       animation: spin 0.7s linear infinite;
@@ -205,226 +215,255 @@
       border-bottom: 1px solid #0f3460;
       flex-shrink: 0;
     }
-
     .legend-title {
-      font-size: 10px;
-      font-weight: 600;
-      color: #3a4570;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      margin-bottom: 7px;
+      font-size: 10px; font-weight: 600; color: #3a4570;
+      text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 7px;
     }
-
     .legend-row {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      margin-bottom: 5px;
-      font-size: 11px;
-      color: #8890b0;
+      display: flex; align-items: center; gap: 7px;
+      margin-bottom: 5px; font-size: 11px; color: #8890b0;
     }
-
     .legend-bus {
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 10px;
-      font-weight: 700;
-      color: #fff;
-      flex-shrink: 0;
-      border: 2px solid rgba(255,255,255,0.3);
+      width: 20px; height: 20px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 700; color: #fff;
+      flex-shrink: 0; border: 2px solid rgba(255,255,255,0.25);
     }
-
-    .legend-line {
-      width: 26px;
-      height: 3px;
-      border-radius: 2px;
-      flex-shrink: 0;
-    }
-
+    .legend-line { width: 26px; height: 3px; border-radius: 2px; flex-shrink: 0; }
     .legend-stop {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: #fff;
-      border: 2px solid #e94560;
-      flex-shrink: 0;
+      width: 10px; height: 10px; border-radius: 50%;
+      background: #fff; border: 2px solid #e94560; flex-shrink: 0;
     }
 
-    /* ---- Attribution ---- */
-    .attribution {
-      padding: 8px 12px;
-      font-size: 10px;
-      color: #2a3050;
-      margin-top: auto;
-    }
+    .attribution { padding: 8px 12px; font-size: 10px; color: #2a3050; margin-top: auto; }
 
     /* ---- Map ---- */
-    #map {
-      flex: 1;
-      z-index: 1;
-    }
+    #map { flex: 1; z-index: 1; }
 
     /* ---- Bus markers ---- */
     .bus-icon {
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-      font-weight: 700;
-      color: #fff;
+      width: 28px; height: 28px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; color: #fff;
       border: 2px solid rgba(255,255,255,0.85);
       box-shadow: 0 2px 10px rgba(0,0,0,0.45);
       cursor: pointer;
-      animation: bus-pulse 2.5s ease-in-out infinite;
+      animation: bpulse 2.5s ease-in-out infinite;
     }
-
-    @keyframes bus-pulse {
-      0%   { box-shadow: 0 2px 10px rgba(0,0,0,0.45), 0 0 0 0 rgba(255,255,255,0.55); }
-      60%  { box-shadow: 0 2px 10px rgba(0,0,0,0.45), 0 0 0 9px rgba(255,255,255,0); }
-      100% { box-shadow: 0 2px 10px rgba(0,0,0,0.45), 0 0 0 0 rgba(255,255,255,0); }
+    @keyframes bpulse {
+      0%   { box-shadow: 0 2px 10px rgba(0,0,0,.45), 0 0 0 0   rgba(255,255,255,.5); }
+      60%  { box-shadow: 0 2px 10px rgba(0,0,0,.45), 0 0 0 9px rgba(255,255,255,0); }
+      100% { box-shadow: 0 2px 10px rgba(0,0,0,.45), 0 0 0 0   rgba(255,255,255,0); }
     }
 
     /* ---- Popup ---- */
-    .leaflet-popup-content-wrapper {
-      border-radius: 8px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
-    }
-    .leaflet-popup-content {
-      font-size: 13px;
-      line-height: 1.5;
-    }
-    .popup-title {
-      font-weight: 700;
-      margin-bottom: 2px;
-    }
-    .popup-eta {
-      color: #666;
-      font-size: 12px;
-    }
-    .popup-eta-row {
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-    }
-    .eta-mins {
-      font-weight: 600;
-      color: #e94560;
-    }
+    .leaflet-popup-content-wrapper { border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,.2); }
+    .leaflet-popup-content { font-size: 13px; line-height: 1.5; }
+    .popup-title { font-weight: 700; margin-bottom: 2px; }
+    .popup-eta-row { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; color: #555; }
+    .eta-mins { font-weight: 600; color: #e94560; }
 
     /* ---- Mobile ---- */
     @media (max-width: 640px) {
-      body { flex-direction: column; }
-      #sidebar {
-        width: 100%;
-        min-width: unset;
-        height: 260px;
-        min-height: 260px;
-        border-right: none;
-        border-bottom: 1px solid #0f3460;
-      }
-      #routeList { max-height: 120px; }
+      #app { flex-direction: column; }
+      #sidebar { width: 100%; min-width: unset; max-height: 260px; border-right: none; border-bottom: 1px solid #0f3460; }
+      #routeList { max-height: 110px; }
       #map { flex: 1; }
     }
   </style>
 </head>
 <body>
 
+<div id="fileBanner" style="display:none">
+  &#x26A0; Browsers block API calls from <code>file://</code> URLs — serve this file via HTTP for live data.
+  Quick start: <code>python3 -m http.server 8080</code> then open <code>http://localhost:8080/bus-tracker/</code>
+  <button onclick="this.parentElement.style.display='none'" title="Dismiss">&#x2715;</button>
+</div>
+
+<div id="app">
+
 <div id="sidebar">
   <div class="header">
     <h1>&#x1F68C; HK Live Bus Tracker</h1>
-    <p class="subtitle">Estimated positions via KMB Open Data</p>
+    <p class="subtitle">KMB &amp; Citybus (CTB) · Estimated real-time positions</p>
   </div>
 
   <div class="search-section">
     <input type="text" id="routeSearch"
-           placeholder="Search route (e.g. 1, 68X, 260X)&#x2026;"
+           placeholder="Search route (e.g. 1, A30, 68X)…"
            autocomplete="off" spellcheck="false" />
   </div>
 
   <div id="routeList">
-    <div class="list-empty">Type a route number to search</div>
+    <div class="list-empty">Loading routes…</div>
   </div>
 
   <div id="routeInfo" class="hidden">
-    <div style="display:flex;align-items:baseline;gap:8px">
-      <span class="info-route-id" id="infoRouteId"></span>
-      <span class="info-route-name" id="infoRouteName"></span>
+    <div class="info-top">
+      <span class="info-route-id" id="infoId"></span>
+      <span class="info-route-name" id="infoName"></span>
     </div>
+    <div class="info-company" id="infoCo"></div>
     <div class="dir-toggle" id="dirToggle"></div>
   </div>
 
-  <div id="status">Loading routes&#x2026;</div>
+  <div id="status">Loading routes…</div>
 
   <div class="legend">
     <div class="legend-title">Legend</div>
-    <div class="legend-row">
-      <div class="legend-bus" style="background:#2ecc71">1</div>
-      Next bus
-    </div>
-    <div class="legend-row">
-      <div class="legend-bus" style="background:#3498db">2</div>
-      2nd bus
-    </div>
-    <div class="legend-row">
-      <div class="legend-bus" style="background:#9b59b6">3</div>
-      3rd bus
-    </div>
-    <div class="legend-row">
-      <div class="legend-line" style="background:#e94560"></div>
-      Route path
-    </div>
-    <div class="legend-row">
-      <div class="legend-stop"></div>
-      Bus stop (click for ETAs)
-    </div>
+    <div class="legend-row"><div class="legend-bus" style="background:#2ecc71">1</div>Next bus</div>
+    <div class="legend-row"><div class="legend-bus" style="background:#3498db">2</div>2nd bus</div>
+    <div class="legend-row"><div class="legend-bus" style="background:#9b59b6">3</div>3rd bus</div>
+    <div class="legend-row"><div class="legend-line" style="background:#e94560"></div>KMB route</div>
+    <div class="legend-row"><div class="legend-line" style="background:#27ae60"></div>CTB route</div>
+    <div class="legend-row"><div class="legend-stop"></div>Bus stop (tap for ETAs)</div>
   </div>
 
-  <div class="attribution">Data: KMB Open Data API &middot; Map: &copy; OpenStreetMap contributors</div>
-</div>
+  <div class="attribution">Data: KMB &amp; CTB Open Data API · Map: &copy; OpenStreetMap contributors</div>
+</div><!-- #sidebar -->
 
 <div id="map"></div>
+
+</div><!-- #app -->
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 'use strict';
 
-const KMB = 'https://data.etabus.gov.hk/v1/transport/kmb';
-const BUS_COLORS = ['#2ecc71', '#3498db', '#9b59b6'];
+// Show file:// warning
+if (location.protocol === 'file:') {
+  document.getElementById('fileBanner').style.display = 'block';
+}
 
-// Application state
+// ---- API base URLs ----
+const KMB_API = 'https://data.etabus.gov.hk/v1/transport/kmb';
+const CTB_API = 'https://rt.data.gov.hk/v2/transport/citybus';
+const BUS_COLORS = ['#2ecc71', '#3498db', '#9b59b6'];
+const ROUTE_COLOR = { KMB: '#e94560', CTB: '#27ae60' };
+
+// ---- Company adapters ----
+const CO = {
+  KMB: {
+    label: 'KMB',
+    fullName: 'Kowloon Motor Bus',
+    stopBase: KMB_API,
+
+    async fetchRoutes() {
+      const r = await fetch(`${KMB_API}/route/`);
+      const j = await r.json();
+      return (j.data || []).map(d => ({
+        co: 'KMB', route: d.route, bound: d.bound,
+        service_type: d.service_type,
+        orig_en: d.orig_en, dest_en: d.dest_en,
+      }));
+    },
+
+    async fetchStops(route, bound, svcType) {
+      // NOTE: the route-stop endpoint uses full words, not 'O'/'I'
+      const dir = bound === 'O' ? 'outbound' : 'inbound';
+      const r = await fetch(`${KMB_API}/route-stop/${route}/${dir}/${svcType}`);
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const j = await r.json();
+      if (!(j.data || []).length) throw new Error('empty');
+      return j.data.sort((a, b) => +a.seq - +b.seq);
+    },
+
+    async fetchEtas(route, bound, svcType, _stops) {
+      const r = await fetch(`${KMB_API}/route-eta/${route}/${svcType}`);
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const j = await r.json();
+      const out = {};
+      for (const item of j.data || []) {
+        if (item.dir !== bound) continue;   // dir is still 'O'/'I' in the response
+        const seq = +item.seq, es = +item.eta_seq;
+        if (!out[seq]) out[seq] = {};
+        out[seq][es] = item.eta ? new Date(item.eta).getTime() : null;
+      }
+      return out;
+    },
+  },
+
+  CTB: {
+    label: 'CTB',
+    fullName: 'Citybus',
+    stopBase: CTB_API,
+
+    async fetchRoutes() {
+      const r = await fetch(`${CTB_API}/route/CTB`);
+      const j = await r.json();
+      const out = [];
+      for (const d of j.data || []) {
+        // CTB API returns one entry per route with no direction field;
+        // synthesise both outbound (O) and inbound (I) entries.
+        out.push({ co: 'CTB', route: d.route, bound: 'O', service_type: '1',
+                   orig_en: d.orig_en, dest_en: d.dest_en });
+        out.push({ co: 'CTB', route: d.route, bound: 'I', service_type: '1',
+                   orig_en: d.dest_en, dest_en: d.orig_en });  // reversed for inbound
+      }
+      return out;
+    },
+
+    async fetchStops(route, bound, _svcType) {
+      const dir = bound === 'O' ? 'outbound' : 'inbound';
+      const r = await fetch(`${CTB_API}/route-stop/CTB/${route}/${dir}`);
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const j = await r.json();
+      if (!(j.data || []).length) throw new Error('empty');
+      return j.data.sort((a, b) => +a.seq - +b.seq);
+    },
+
+    async fetchEtas(route, bound, _svcType, stops) {
+      // CTB has no route-level ETA endpoint — must call per stop.
+      const word = bound === 'O' ? 'outbound' : 'inbound';
+      const out = {};
+      // Batch 8 stops at a time to avoid hammering the API
+      for (let i = 0; i < stops.length; i += 8) {
+        await Promise.all(
+          stops.slice(i, i + 8).map(async stop => {
+            try {
+              const r = await fetch(`${CTB_API}/eta/CTB/${stop.stop_id}/${route}`);
+              const j = await r.json();
+              for (const item of j.data || []) {
+                if (item.dir !== word) continue;
+                const es = +item.eta_seq;
+                if (!out[stop.seq]) out[stop.seq] = {};
+                out[stop.seq][es] = item.eta ? new Date(item.eta).getTime() : null;
+              }
+            } catch { /* skip bad stops */ }
+          })
+        );
+      }
+      return out;
+    },
+  },
+};
+
+// ---- App state ----
 const state = {
   allRoutes: [],
-  selected: null,       // {route, bound, service_type, orig_en, dest_en}
+  selected: null,       // normalised route entry
   routeStops: [],       // [{seq, stop_id, lat, lng, name_en}]
   refreshTimer: null,
   cdownTimer: null,
 };
 
-let lastEtas = {};      // seq -> {etaSeq -> ms timestamp}
+let lastEtas = {};      // seq -> { etaSeq -> ms }
 
-// Leaflet layers
 let map;
 const layer = { route: null, stops: null, buses: null };
 
-// ----------------------------------------------------------------
-// Initialisation
-// ----------------------------------------------------------------
+// ================================================================
+// Init
+// ================================================================
 (async function init() {
   initMap();
   document.getElementById('routeSearch')
     .addEventListener('input', e => renderRouteList(e.target.value));
-  await loadRoutes();
+  await loadAllRoutes();
 })();
 
 function initMap() {
-  map = L.map('map', { zoomControl: true }).setView([22.355, 114.148], 12);
+  map = L.map('map').setView([22.355, 114.148], 12);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     maxZoom: 19,
@@ -434,24 +473,32 @@ function initMap() {
   layer.buses = L.layerGroup().addTo(map);
 }
 
-// ----------------------------------------------------------------
-// Load all KMB routes
-// ----------------------------------------------------------------
-async function loadRoutes() {
+// ================================================================
+// Route loading (KMB + CTB in parallel)
+// ================================================================
+async function loadAllRoutes() {
   setStatus('Loading routes…', 'loading');
-  try {
-    const res = await fetch(`${KMB}/route/`);
-    const json = await res.json();
-    state.allRoutes = json.data || [];
-    setStatus('Search for a KMB route to begin');
-  } catch {
-    setStatus('Could not load routes — check network connection', 'error');
+  const [kmb, ctb] = await Promise.allSettled([
+    CO.KMB.fetchRoutes(),
+    CO.CTB.fetchRoutes(),
+  ]);
+  state.allRoutes = [
+    ...(kmb.status === 'fulfilled' ? kmb.value : []),
+    ...(ctb.status === 'fulfilled' ? ctb.value : []),
+  ];
+  const sources = [kmb.status === 'fulfilled' && 'KMB', ctb.status === 'fulfilled' && 'CTB']
+    .filter(Boolean).join(' + ');
+  if (state.allRoutes.length) {
+    setStatus(`${state.allRoutes.length} routes loaded (${sources}) — search to begin`);
+  } else {
+    setStatus('Failed to load routes — check your network connection', 'error');
   }
+  renderRouteList('');
 }
 
-// ----------------------------------------------------------------
-// Route list rendering & filtering
-// ----------------------------------------------------------------
+// ================================================================
+// Route list
+// ================================================================
 function renderRouteList(query) {
   const list = document.getElementById('routeList');
   if (!query.trim()) {
@@ -461,18 +508,19 @@ function renderRouteList(query) {
   const q = query.trim().toUpperCase();
   const hits = state.allRoutes
     .filter(r => r.route === q || r.route.startsWith(q))
-    .slice(0, 40);
-
+    .slice(0, 50);
   if (!hits.length) {
-    list.innerHTML = `<div class="list-empty">No routes matching “${query}”</div>`;
+    list.innerHTML = `<div class="list-empty">No routes matching “${esc(query)}”</div>`;
     return;
   }
-
+  const sel = state.selected;
   list.innerHTML = hits.map(r => {
-    const sel = state.selected;
-    const active = sel && sel.route === r.route && sel.bound === r.bound && sel.service_type === r.service_type;
+    const active = sel &&
+      sel.co === r.co && sel.route === r.route &&
+      sel.bound === r.bound && sel.service_type === r.service_type;
     return `<div class="route-item${active ? ' active' : ''}"
-         onclick="pickRoute('${esc(r.route)}','${r.bound}','${esc(r.service_type)}')">
+         onclick="pickRoute('${r.co}','${esc(r.route)}','${r.bound}','${esc(r.service_type)}')">
+      <span class="co-badge ${r.co}">${r.co}</span>
       <span class="route-num">${esc(r.route)}</span>
       <span class="route-arrow">${r.bound === 'O' ? '&#9654;' : '&#9664;'}</span>
       <span class="route-label">${titleCase(r.orig_en)} &#x2192; ${titleCase(r.dest_en)}</span>
@@ -480,85 +528,81 @@ function renderRouteList(query) {
   }).join('');
 }
 
-// ----------------------------------------------------------------
+// ================================================================
 // Route selection
-// ----------------------------------------------------------------
-window.pickRoute = async function(routeId, bound, serviceType) {
+// ================================================================
+window.pickRoute = async function(co, routeId, bound, serviceType) {
   const route = state.allRoutes.find(
-    r => r.route === routeId && r.bound === bound && r.service_type === serviceType
+    r => r.co === co && r.route === routeId && r.bound === bound && r.service_type === serviceType
   );
   if (!route) return;
-
   const sel = state.selected;
-  if (sel && sel.route === routeId && sel.bound === bound && sel.service_type === serviceType) return;
+  if (sel && sel.co === co && sel.route === routeId && sel.bound === bound && sel.service_type === serviceType) return;
 
   state.selected = route;
   stopRefresh();
   clearLayers();
-
-  // Re-render list to show active highlight
   renderRouteList(document.getElementById('routeSearch').value);
   showRouteInfo(route);
 
   try {
-    await loadRouteStops(routeId, bound, serviceType);
+    await loadRouteStops(route);
     startRefresh();
-  } catch {
-    // error already shown via setStatus
-  }
+  } catch { /* setStatus already called */ }
 };
 
 function showRouteInfo(route) {
-  document.getElementById('infoRouteId').textContent = route.route;
-  document.getElementById('infoRouteName').textContent =
+  const idEl = document.getElementById('infoId');
+  idEl.textContent = route.route;
+  idEl.className = `info-route-id ${route.co}`;
+  document.getElementById('infoName').textContent =
     `${titleCase(route.orig_en)} → ${titleCase(route.dest_en)}`;
+  document.getElementById('infoCo').textContent = CO[route.co].fullName;
 
-  const opposite = state.allRoutes.find(
-    r => r.route === route.route && r.bound !== route.bound && r.service_type === route.service_type
+  const opp = state.allRoutes.find(
+    r => r.co === route.co && r.route === route.route &&
+         r.bound !== route.bound && r.service_type === route.service_type
   );
-
   const toggle = document.getElementById('dirToggle');
   toggle.innerHTML = '';
-  if (opposite) {
-    const ob = route.bound === 'O' ? route : opposite;
-    const ib = route.bound === 'I' ? route : opposite;
+  if (opp) {
+    const ob = route.bound === 'O' ? route : opp;
+    const ib = route.bound === 'I' ? route : opp;
+    const cls = `active-${route.co}`;
     toggle.innerHTML = `
-      <button class="dir-btn${route.bound === 'O' ? ' active' : ''}"
-              onclick="pickRoute('${esc(ob.route)}','O','${esc(ob.service_type)}')"
-              title="${esc(ob.orig_en)} to ${esc(ob.dest_en)}">
+      <button class="dir-btn${route.bound === 'O' ? ' ' + cls : ''}"
+              onclick="pickRoute('${route.co}','${esc(ob.route)}','O','${esc(ob.service_type)}')">
         &#9654; ${titleCase(ob.dest_en)}
       </button>
-      <button class="dir-btn${route.bound === 'I' ? ' active' : ''}"
-              onclick="pickRoute('${esc(ib.route)}','I','${esc(ib.service_type)}')"
-              title="${esc(ib.orig_en)} to ${esc(ib.dest_en)}">
+      <button class="dir-btn${route.bound === 'I' ? ' ' + cls : ''}"
+              onclick="pickRoute('${route.co}','${esc(ib.route)}','I','${esc(ib.service_type)}')">
         &#9664; ${titleCase(ib.dest_en)}
       </button>`;
   }
-
   document.getElementById('routeInfo').classList.remove('hidden');
 }
 
-// ----------------------------------------------------------------
-// Load route stops
-// ----------------------------------------------------------------
-async function loadRouteStops(routeId, bound, serviceType) {
+// ================================================================
+// Stop loading
+// ================================================================
+async function loadRouteStops(route) {
   setStatus('Loading stops…', 'loading');
-
-  const res = await fetch(`${KMB}/route-stop/${routeId}/${bound}/${serviceType}`);
-  if (!res.ok) {
-    setStatus('Failed to load stops for this route', 'error');
-    throw new Error('route-stop fetch failed');
-  }
-  const json = await res.json();
-  const refs = (json.data || []).sort((a, b) => +a.seq - +b.seq);
-
-  if (!refs.length) {
-    setStatus('No stops found for this route', 'error');
-    throw new Error('no stops');
+  const adapter = CO[route.co];
+  let refs;
+  try {
+    refs = await adapter.fetchStops(route.route, route.bound, route.service_type);
+  } catch (e) {
+    setStatus(
+      e.message === 'empty'
+        ? 'No service in this direction'
+        : `Could not load stops (${e.message})`,
+      'error'
+    );
+    throw e;
   }
 
   setStatus(`Fetching ${refs.length} stop coordinates…`, 'loading');
-  const coords = await batchFetchStops(refs.map(r => r.stop));
+  const coords = await batchFetchStops(refs.map(r => r.stop), adapter.stopBase);
 
   state.routeStops = refs
     .map(r => ({ seq: +r.seq, stop_id: r.stop, ...coords[r.stop] }))
@@ -569,28 +613,26 @@ async function loadRouteStops(routeId, bound, serviceType) {
     throw new Error('no coords');
   }
 
-  drawRoute(state.routeStops);
+  drawRoute(state.routeStops, route.co);
   setStatus(`${state.routeStops.length} stops loaded`);
 }
 
-async function batchFetchStops(stopIds) {
+async function batchFetchStops(stopIds, apiBase) {
+  const prefix = apiBase.includes('citybus') ? 'ctb_s_' : 'kmb_s_';
   const result = {};
   const toFetch = [];
 
   for (const id of stopIds) {
-    const cached = sessionStorage.getItem(`kmb_s_${id}`);
-    if (cached) {
-      result[id] = JSON.parse(cached);
-    } else {
-      toFetch.push(id);
-    }
+    const cached = sessionStorage.getItem(prefix + id);
+    if (cached) result[id] = JSON.parse(cached);
+    else toFetch.push(id);
   }
 
   for (let i = 0; i < toFetch.length; i += 8) {
     await Promise.all(
       toFetch.slice(i, i + 8).map(async id => {
         try {
-          const r = await fetch(`${KMB}/stop/${id}`);
+          const r = await fetch(`${apiBase}/stop/${id}`);
           const j = await r.json();
           if (j.data) {
             const info = {
@@ -599,110 +641,76 @@ async function batchFetchStops(stopIds) {
               name_en: j.data.name_en,
             };
             result[id] = info;
-            sessionStorage.setItem(`kmb_s_${id}`, JSON.stringify(info));
+            sessionStorage.setItem(prefix + id, JSON.stringify(info));
           }
-        } catch { /* skip bad stop */ }
+        } catch { /* skip */ }
       })
     );
   }
-
   return result;
 }
 
-// ----------------------------------------------------------------
+// ================================================================
 // Map drawing
-// ----------------------------------------------------------------
-function drawRoute(stops) {
+// ================================================================
+function drawRoute(stops, co) {
   clearLayers();
+  const color = ROUTE_COLOR[co] || '#e94560';
   const lls = stops.map(s => [s.lat, s.lng]);
 
-  L.polyline(lls, { color: '#e94560', weight: 4, opacity: 0.7 })
-    .addTo(layer.route);
+  L.polyline(lls, { color, weight: 4, opacity: 0.72 }).addTo(layer.route);
 
   stops.forEach(stop => {
     L.circleMarker([stop.lat, stop.lng], {
-      radius: 5,
-      fillColor: '#fff',
-      color: '#e94560',
-      weight: 2,
-      fillOpacity: 1,
-      zIndexOffset: 50,
+      radius: 5, fillColor: '#fff', color, weight: 2, fillOpacity: 1, zIndexOffset: 50,
     })
     .bindPopup(() => buildStopPopup(stop), { maxWidth: 240 })
     .addTo(layer.stops);
   });
 
-  if (lls.length > 1) {
-    map.fitBounds(L.latLngBounds(lls), { padding: [40, 40] });
-  }
+  if (lls.length > 1) map.fitBounds(L.latLngBounds(lls), { padding: [40, 40] });
 }
 
 function buildStopPopup(stop) {
-  const now = Date.now();
+  const now  = Date.now();
   const etas = lastEtas[stop.seq];
-  let etaHtml = '<div class="popup-eta" style="color:#999;margin-top:4px">No buses en route</div>';
+  let etaHtml = '<p style="color:#999;font-size:12px;margin-top:4px">No buses en route</p>';
 
   if (etas) {
-    const rows = [1, 2, 3]
-      .map(es => {
-        const t = etas[es];
-        if (!t) return null;
-        const mins = Math.round((t - now) / 60000);
-        if (mins < -1) return null;
-        const label = mins <= 0 ? 'Arriving' : `${mins} min`;
-        return `<div class="popup-eta-row">
-          <span>Bus&nbsp;${es}</span>
-          <span class="eta-mins">${label}</span>
-        </div>`;
-      })
-      .filter(Boolean);
-
-    if (rows.length) {
-      etaHtml = `<div class="popup-eta" style="margin-top:6px">${rows.join('')}</div>`;
-    }
+    const rows = [1, 2, 3].map(es => {
+      const t = etas[es];
+      if (!t) return null;
+      const mins = Math.round((t - now) / 60000);
+      if (mins < -1) return null;
+      return `<div class="popup-eta-row">
+        <span>Bus ${es}</span>
+        <span class="eta-mins">${mins <= 0 ? 'Arriving' : `${mins} min`}</span>
+      </div>`;
+    }).filter(Boolean);
+    if (rows.length) etaHtml = `<div style="margin-top:6px">${rows.join('')}</div>`;
   }
 
   return `<div class="popup-title">${esc(stop.name_en)}</div>
-          <div style="font-size:11px;color:#999">Stop ${stop.seq}</div>
-          ${etaHtml}`;
+          <div style="font-size:11px;color:#999">Stop ${stop.seq}</div>${etaHtml}`;
 }
 
-// ----------------------------------------------------------------
-// ETA fetch & bus position interpolation
-// ----------------------------------------------------------------
+// ================================================================
+// ETA fetching & bus position interpolation
+// ================================================================
 async function updateBusPositions() {
   if (!state.selected) return;
-  const { route, bound, service_type } = state.selected;
-
+  const { co, route, bound, service_type } = state.selected;
   setStatus('Refreshing…', 'loading');
 
   try {
-    const res = await fetch(`${KMB}/route-eta/${route}/${service_type}`);
-    if (!res.ok) throw new Error('eta fetch failed');
-    const json = await res.json();
-
+    lastEtas = await CO[co].fetchEtas(route, bound, service_type, state.routeStops);
     const now = Date.now();
-    lastEtas = {};
-
-    for (const item of json.data || []) {
-      if (item.dir !== bound) continue;
-      const seq = +item.seq;
-      const es  = +item.eta_seq;
-      if (!lastEtas[seq]) lastEtas[seq] = {};
-      lastEtas[seq][es] = item.eta ? new Date(item.eta).getTime() : null;
-    }
-
     layer.buses.clearLayers();
     let found = 0;
-
     for (let es = 1; es <= 3; es++) {
       const pos = interpolateBus(state.routeStops, lastEtas, es, now);
-      if (pos) {
-        addBusMarker(pos, es, now);
-        found++;
-      }
+      if (pos) { addBusMarker(pos, es, now); found++; }
     }
-
     if (found === 0) {
       setStatus('No buses currently operating on this route', 'error');
     } else {
@@ -715,78 +723,61 @@ async function updateBusPositions() {
 }
 
 function interpolateBus(stops, etaBySeq, etaSeq, now) {
-  // Find the first stop this bus still has a future ETA for
+  // Find the first stop where this bus still has a future ETA
   let firstIdx = -1;
   for (let i = 0; i < stops.length; i++) {
     const t = etaBySeq[stops[i].seq]?.[etaSeq];
-    if (t != null && t > now) {
-      firstIdx = i;
-      break;
-    }
+    if (t != null && t > now) { firstIdx = i; break; }
   }
   if (firstIdx < 0) return null;
 
   const nextStop = stops[firstIdx];
   const etaNext  = etaBySeq[nextStop.seq][etaSeq];
 
-  // Bus hasn't entered the route yet
-  if (firstIdx === 0) {
-    return { lat: nextStop.lat, lng: nextStop.lng, etaNext, nextStop };
-  }
+  if (firstIdx === 0) return { lat: nextStop.lat, lng: nextStop.lng, etaNext, nextStop };
 
   const prevStop = stops[firstIdx - 1];
-
-  // Estimate interval between stops using the gap between the next two future ETAs
-  let interval = 3 * 60 * 1000; // default 3 min
+  // Estimate inter-stop travel time from the gap between the next two future ETAs
+  let interval = 3 * 60 * 1000;
   if (firstIdx + 1 < stops.length) {
     const etaAfter = etaBySeq[stops[firstIdx + 1].seq]?.[etaSeq];
     if (etaAfter && etaAfter > etaNext) interval = etaAfter - etaNext;
   }
-
-  const estDeparture = etaNext - interval;
-  const t = Math.max(0, Math.min(1, (now - estDeparture) / (etaNext - estDeparture)));
+  const estDep = etaNext - interval;
+  const t = Math.max(0, Math.min(1, (now - estDep) / (etaNext - estDep)));
 
   return {
     lat: prevStop.lat + t * (nextStop.lat - prevStop.lat),
     lng: prevStop.lng + t * (nextStop.lng - prevStop.lng),
-    etaNext,
-    nextStop,
+    etaNext, nextStop,
   };
 }
 
 function addBusMarker({ lat, lng, etaNext, nextStop }, etaSeq, now) {
   const color = BUS_COLORS[etaSeq - 1];
   const mins  = etaNext ? Math.max(0, Math.round((etaNext - now) / 60000)) : '?';
+  const label = ['next', '2nd', '3rd'][etaSeq - 1];
 
   const icon = L.divIcon({
     html: `<div class="bus-icon" style="background:${color}">${etaSeq}</div>`,
-    className: '',
-    iconSize: [28, 28],
-    iconAnchor: [14, 14],
-    popupAnchor: [0, -16],
+    className: '', iconSize: [28, 28], iconAnchor: [14, 14], popupAnchor: [0, -16],
   });
 
-  L.marker([lat, lng], { icon, zIndexOffset: 500 + etaSeq })
+  L.marker([lat, lng], { icon, zIndexOffset: 500 })
     .bindPopup(
-      `<div class="popup-title">Bus ${etaSeq} (${etaSeq === 1 ? 'next' : etaSeq === 2 ? '2nd' : '3rd'})</div>` +
-      `<div class="popup-eta">
-        <div class="popup-eta-row">
-          <span>Next stop</span>
-          <span>${esc(nextStop?.name_en || '—')}</span>
-        </div>
-        <div class="popup-eta-row">
-          <span>Arriving in</span>
-          <span class="eta-mins">${mins} min</span>
-        </div>
-      </div>`,
+      `<div class="popup-title">Bus ${etaSeq} (${label})</div>
+       <div style="margin-top:4px">
+         <div class="popup-eta-row"><span>Next stop</span><span>${esc(nextStop?.name_en || '—')}</span></div>
+         <div class="popup-eta-row"><span>Arrives in</span><span class="eta-mins">${mins} min</span></div>
+       </div>`,
       { maxWidth: 220 }
     )
     .addTo(layer.buses);
 }
 
-// ----------------------------------------------------------------
-// Auto-refresh
-// ----------------------------------------------------------------
+// ================================================================
+// Refresh
+// ================================================================
 function startRefresh() {
   updateBusPositions();
   state.refreshTimer = setInterval(updateBusPositions, 30_000);
@@ -795,8 +786,7 @@ function startRefresh() {
 function stopRefresh() {
   clearInterval(state.refreshTimer);
   clearInterval(state.cdownTimer);
-  state.refreshTimer = null;
-  state.cdownTimer   = null;
+  state.refreshTimer = state.cdownTimer = null;
 }
 
 function startCountdown() {
@@ -806,26 +796,13 @@ function startCountdown() {
     secs--;
     if (secs <= 0) { clearInterval(state.cdownTimer); return; }
     const el = document.getElementById('status');
-    if (el.classList.contains('ok')) {
-      el.textContent = el.textContent.replace(/\d+s/, `${secs}s`);
-    }
+    if (el.classList.contains('ok')) el.textContent = el.textContent.replace(/\d+s/, `${secs}s`);
   }, 1000);
 }
 
-// ----------------------------------------------------------------
-// Status bar
-// ----------------------------------------------------------------
-function setStatus(msg, type) {
-  const el  = document.getElementById('status');
-  el.className = type ? `status ${type}` : 'status';
-  // Spinner for loading
-  const spinner = type === 'loading' ? '<div class="spinner"></div>' : '';
-  el.innerHTML  = spinner + esc(msg);
-}
-
-// ----------------------------------------------------------------
+// ================================================================
 // Helpers
-// ----------------------------------------------------------------
+// ================================================================
 function clearLayers() {
   layer.route.clearLayers();
   layer.stops.clearLayers();
@@ -833,14 +810,16 @@ function clearLayers() {
   lastEtas = {};
 }
 
+function setStatus(msg, type) {
+  const el = document.getElementById('status');
+  el.className = type ? `status ${type}` : 'status';
+  el.innerHTML = (type === 'loading' ? '<div class="spinner"></div>' : '') + esc(msg);
+}
+
 function esc(s) {
-  if (!s) return '';
-  return String(s)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
+  return String(s ?? '')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
 function titleCase(str) {
