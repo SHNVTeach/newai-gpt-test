@@ -311,9 +311,7 @@
 
   <div class="legend">
     <div class="legend-title">Legend</div>
-    <div class="legend-row"><div class="legend-bus" style="background:#2ecc71">1</div>Next bus</div>
-    <div class="legend-row"><div class="legend-bus" style="background:#3498db">2</div>2nd bus</div>
-    <div class="legend-row"><div class="legend-bus" style="background:#9b59b6">3</div>3rd bus</div>
+    <div class="legend-row"><div class="legend-bus" style="background:#2ecc71">1</div>Bus (1 = nearest destination)</div>
     <div class="legend-row"><div class="legend-line" style="background:#e94560"></div>KMB route</div>
     <div class="legend-row"><div class="legend-line" style="background:#27ae60"></div>CTB route</div>
     <div class="legend-row"><div class="legend-stop"></div>Bus stop (tap for ETAs)</div>
@@ -340,6 +338,12 @@ const KMB_API = 'https://data.etabus.gov.hk/v1/transport/kmb';
 const CTB_API = 'https://rt.data.gov.hk/v2/transport/citybus';
 const BUS_COLORS = ['#2ecc71', '#3498db', '#9b59b6'];
 const ROUTE_COLOR = { KMB: '#e94560', CTB: '#27ae60' };
+
+// Direction values appear as 'O'/'I' in some responses and
+// 'outbound'/'inbound' in others — normalise to a single letter.
+function dirLetter(d) {
+  return (d || '').charAt(0).toUpperCase();
+}
 
 // ---- Company adapters ----
 const CO = {
@@ -374,7 +378,7 @@ const CO = {
       const j = await r.json();
       const out = {};
       for (const item of j.data || []) {
-        if (item.dir !== bound) continue;   // dir is still 'O'/'I' in the response
+        if (dirLetter(item.dir) !== bound) continue;
         const seq = +item.seq, es = +item.eta_seq;
         if (!out[seq]) out[seq] = {};
         out[seq][es] = item.eta ? new Date(item.eta).getTime() : null;
@@ -414,7 +418,8 @@ const CO = {
 
     async fetchEtas(route, bound, _svcType, stops) {
       // CTB has no route-level ETA endpoint — must call per stop.
-      const word = bound === 'O' ? 'outbound' : 'inbound';
+      // The ETA response's `dir` field is 'O'/'I' (like KMB), even though
+      // request URLs use the full words.
       const out = {};
       // Batch 8 stops at a time to avoid hammering the API
       for (let i = 0; i < stops.length; i += 8) {
@@ -424,7 +429,7 @@ const CO = {
               const r = await fetch(`${CTB_API}/eta/CTB/${stop.stop_id}/${route}`);
               const j = await r.json();
               for (const item of j.data || []) {
-                if (item.dir !== word) continue;
+                if (dirLetter(item.dir) !== bound) continue;
                 const es = +item.eta_seq;
                 if (!out[stop.seq]) out[stop.seq] = {};
                 out[stop.seq][es] = item.eta ? new Date(item.eta).getTime() : null;
@@ -662,7 +667,7 @@ function drawRoute(stops, co) {
 
   stops.forEach(stop => {
     L.circleMarker([stop.lat, stop.lng], {
-      radius: 5, fillColor: '#fff', color, weight: 2, fillOpacity: 1, zIndexOffset: 50,
+      radius: 5, fillColor: '#fff', color, weight: 2, fillOpacity: 1,
     })
     .bindPopup(() => buildStopPopup(stop), { maxWidth: 240 })
     .addTo(layer.stops);
@@ -683,7 +688,7 @@ function buildStopPopup(stop) {
       const mins = Math.round((t - now) / 60000);
       if (mins < -1) return null;
       return `<div class="popup-eta-row">
-        <span>Bus ${es}</span>
+        <span>Arrival ${es}</span>
         <span class="eta-mins">${mins <= 0 ? 'Arriving' : `${mins} min`}</span>
       </div>`;
     }).filter(Boolean);
@@ -695,7 +700,7 @@ function buildStopPopup(stop) {
 }
 
 // ================================================================
-// ETA fetching & bus position interpolation
+// ETA fetching & bus position estimation
 // ================================================================
 async function updateBusPositions() {
   if (!state.selected) return;
@@ -706,15 +711,19 @@ async function updateBusPositions() {
     lastEtas = await CO[co].fetchEtas(route, bound, service_type, state.routeStops);
     const now = Date.now();
     layer.buses.clearLayers();
-    let found = 0;
-    for (let es = 1; es <= 3; es++) {
-      const pos = interpolateBus(state.routeStops, lastEtas, es, now);
-      if (pos) { addBusMarker(pos, es, now); found++; }
-    }
-    if (found === 0) {
+
+    const buses = detectBuses(state.routeStops, lastEtas, now);
+    // buses is ordered start → end of route; number 1 = nearest destination
+    buses.forEach((bus, i) => {
+      const num = buses.length - i;
+      const pos = positionBus(state.routeStops, bus, lastEtas, now);
+      addBusMarker(pos, num, buses.length, now);
+    });
+
+    if (buses.length === 0) {
       setStatus('No buses currently operating on this route', 'error');
     } else {
-      setStatus(`${found} bus${found > 1 ? 'es' : ''} tracked · Refreshing in 30s`, 'ok');
+      setStatus(`${buses.length} bus${buses.length > 1 ? 'es' : ''} tracked · Refreshing in 30s`, 'ok');
       startCountdown();
     }
   } catch {
@@ -722,50 +731,67 @@ async function updateBusPositions() {
   }
 }
 
-function interpolateBus(stops, etaBySeq, etaSeq, now) {
-  // Find the first stop where this bus still has a future ETA
-  let firstIdx = -1;
+// Detect every bus on the route from per-stop ETAs.
+// While the next-arrival ETA refers to the same vehicle it increases
+// along the stop sequence; a DROP means a different (closer) bus serves
+// that stop — i.e. a bus is physically located just before it.
+function detectBuses(stops, etaBySeq, now) {
+  const nextEta = stops.map(s => {
+    const e = etaBySeq[s.seq];
+    if (!e) return null;
+    const future = [e[1], e[2], e[3]].filter(t => t && t > now);
+    return future.length ? Math.min(...future) : null;
+  });
+
+  const buses = [];
+  let prev = null, prevIdx = -1;
   for (let i = 0; i < stops.length; i++) {
-    const t = etaBySeq[stops[i].seq]?.[etaSeq];
-    if (t != null && t > now) { firstIdx = i; break; }
+    if (nextEta[i] == null) continue;
+    if (prev === null || nextEta[i] < prev) {
+      buses.push({ approachIdx: i, eta: nextEta[i], fromIdx: Math.max(prevIdx, i - 1) });
+    }
+    prev = nextEta[i]; prevIdx = i;
   }
-  if (firstIdx < 0) return null;
+  return buses;
+}
 
-  const nextStop = stops[firstIdx];
-  const etaNext  = etaBySeq[nextStop.seq][etaSeq];
+function positionBus(stops, bus, etaBySeq, now) {
+  const nextStop = stops[bus.approachIdx];
+  if (bus.approachIdx === 0 || bus.fromIdx < 0) {
+    // Bus hasn't departed the first stop yet
+    return { lat: nextStop.lat, lng: nextStop.lng, etaNext: bus.eta, nextStop };
+  }
+  const prevStop = stops[bus.fromIdx];
 
-  if (firstIdx === 0) return { lat: nextStop.lat, lng: nextStop.lng, etaNext, nextStop };
-
-  const prevStop = stops[firstIdx - 1];
-  // Estimate inter-stop travel time from the gap between the next two future ETAs
+  // Estimate inter-stop travel time from this bus's ETA at the stop after next
   let interval = 3 * 60 * 1000;
-  if (firstIdx + 1 < stops.length) {
-    const etaAfter = etaBySeq[stops[firstIdx + 1].seq]?.[etaSeq];
-    if (etaAfter && etaAfter > etaNext) interval = etaAfter - etaNext;
+  if (bus.approachIdx + 1 < stops.length) {
+    const e = etaBySeq[stops[bus.approachIdx + 1].seq];
+    const after = e ? [e[1], e[2], e[3]].filter(t => t && t > bus.eta) : [];
+    if (after.length) interval = Math.min(...after) - bus.eta;
   }
-  const estDep = etaNext - interval;
-  const t = Math.max(0, Math.min(1, (now - estDep) / (etaNext - estDep)));
 
+  const estDep = bus.eta - interval;
+  const t = Math.max(0, Math.min(1, (now - estDep) / (bus.eta - estDep)));
   return {
     lat: prevStop.lat + t * (nextStop.lat - prevStop.lat),
     lng: prevStop.lng + t * (nextStop.lng - prevStop.lng),
-    etaNext, nextStop,
+    etaNext: bus.eta, nextStop,
   };
 }
 
-function addBusMarker({ lat, lng, etaNext, nextStop }, etaSeq, now) {
-  const color = BUS_COLORS[etaSeq - 1];
+function addBusMarker({ lat, lng, etaNext, nextStop }, num, total, now) {
+  const color = BUS_COLORS[(num - 1) % BUS_COLORS.length];
   const mins  = etaNext ? Math.max(0, Math.round((etaNext - now) / 60000)) : '?';
-  const label = ['next', '2nd', '3rd'][etaSeq - 1];
 
   const icon = L.divIcon({
-    html: `<div class="bus-icon" style="background:${color}">${etaSeq}</div>`,
+    html: `<div class="bus-icon" style="background:${color}">${num}</div>`,
     className: '', iconSize: [28, 28], iconAnchor: [14, 14], popupAnchor: [0, -16],
   });
 
   L.marker([lat, lng], { icon, zIndexOffset: 500 })
     .bindPopup(
-      `<div class="popup-title">Bus ${etaSeq} (${label})</div>
+      `<div class="popup-title">Bus ${num} of ${total}</div>
        <div style="margin-top:4px">
          <div class="popup-eta-row"><span>Next stop</span><span>${esc(nextStop?.name_en || '—')}</span></div>
          <div class="popup-eta-row"><span>Arrives in</span><span class="eta-mins">${mins} min</span></div>
